@@ -1,0 +1,292 @@
+## Overriding values for Chart's values.yaml
+## Example values to run Confluent Operator in Private Cloud
+global:
+  provider:
+    name: private
+    ## if any name which indicates regions
+    ##
+    region: anyregion
+    kubernetes:
+       deployment:
+         ## If kubernetes is deployed in multi zone mode then specify availability-zones as appropriate
+         ## If kubernetes is deployed in single availability zone then specify appropriate values
+         ## For the private cloud, use kubernetes node labels as appropriate
+         zones:
+          - myzones
+    ##
+    ## Docker registry endpoint where Confluent Images are available.
+    ##
+    registry:
+      fqdn: docker.io
+      credential:
+        required: false
+  ## Credentials for Confluent Cloud (API Key and secret)
+  ## Can set here in values.yaml, or overwrite them in Helm install/upgrade commands like:
+  ## --set global.sasl.plain.username=<cloud_api_user> --set global.sasl.plain.password=<cloud_api_password> 
+  sasl:
+    plain:
+      username: <API_KEY>
+      password: <API_SECRET> 
+  authorization:
+    rbac:
+      enabled: false
+    simple:
+      enabled: false
+    superUsers: []
+  dependencies:
+    mds:
+      endpoint: ""
+      publicKey: ""
+  initContainer:
+    image:
+      tag: 5.5.0.0-ubi8
+##Operator
+operator:
+  image:
+    tag: 0.364.0-ubi8
+## Zookeeper cluster
+##
+# zookeeper:
+#   name: zookeeper
+#   replicas: 3
+#   resources:
+#     requests:
+#       cpu: 200m
+#       memory: 512Mi
+#   jvmConfig:
+#     heapSize: 512M
+#   image:
+#     tag: 5.5.0.0-ubi8
+#   disableHostPort: true
+
+# ## Kafka Cluster
+# ##
+# kafka:
+#   name: kafka
+#   replicas: 3
+#   resources:
+#     requests:
+#       cpu: 200m
+#       memory: 512Mi
+#   loadBalancer:
+#     enabled: true
+#     domain: "cp.55.demo"
+#   tls:
+#     enabled: false
+#     fullchain: |-
+#     privkey: |-
+#     cacerts: |-
+#   metricReporter:
+#     enabled: false
+#   jvmConfig:
+#     heapSize: 512M
+#   image:
+#     tag: 5.5.0.0-ubi8
+#   disableHostPort: true
+
+## Connect Cluster
+##
+connect:
+  name: connectors
+  replicas: 2
+  image: 
+    repository: alecpowell18/connect-custom
+    tag: 0.1
+  dependencies:
+    kafka:
+      bootstrapEndpoint: pkc-abcde.eastus.azure.confluent.cloud:9092
+      brokerCount: 3
+      username: <API_KEY>
+      password: <API_SECRET>
+      tls:
+        enabled: true
+        internal: true
+        authentication:
+          type: "plain"
+    schemaRegistry:
+      enabled: false
+      url: ""
+  resources:
+    requests:
+      cpu: 200m
+      memory: 256Mi
+  jvmConfig:
+    heapSize: 256M
+  ### Only Enable TLS if you want REST Endpoint for Connect in SSL mode
+  ###
+  tls:
+    enabled: false 
+    internal: false
+    ## "" for none, "tls" for mutual auth
+    authentication:
+      type: ""
+    fullchain: |-
+    privkey: |-
+    cacerts: |-
+  loadBalancer:
+    enabled: false
+    domain: ""
+## Replicator Connect Cluster
+##
+# replicator:
+#   name: replicator
+#   replicas: 2
+#   tls:
+#     enabled: false
+#     authentication:
+#       type: ""
+#     fullchain: |-
+#     privkey: |-
+#     cacerts: |-
+#   loadBalancer:
+#     enabled: false
+#     domain: ""
+#   dependencies:
+#     kafka:
+#       brokerCount: 3
+#       bootstrapEndpoint: kafka:9071
+#   image:
+#     tag: 5.5.0.0-ubi8 
+##
+## Schema Registry
+##
+# schemaregistry:
+#   name: schemaregistry
+#   replicas: 1
+#   resources:
+#     requests:
+#       cpu: 200m
+#       memory: 512Mi
+#   jvmConfig:
+#     heapSize: 512M
+#   tls:
+#     enabled: false
+#     authentication:
+#       type: ""
+#     fullchain: |-
+#     privkey: |-
+#     cacerts: |-
+#   loadBalancer:
+#     enabled: false
+#     domain: ""
+#   dependencies:
+#     kafka:
+#       brokerCount: 3
+#       bootstrapEndpoint: kafka:9071
+#   image:
+#     tag: 5.5.0.0-ubi8
+##
+## KSQL
+## EDIT the PSC in confluent-operator/charts/ksql/templates/ksql-psc.yml
+## ksql.internal.topic.replicas=3, ksql.streams.replication.factor=3, ksql.logging.processing.topic.replication.factor=3
+## NOTE: does not support connecting to Cloud managed SR with basic auth.
+##
+# ksql:
+#   name: ksql
+#   replicas: 1
+#   resources:
+#     requests:
+#       cpu: 200m
+#       memory: 512Mi
+#   jvmConfig:
+#     heapSize: 512M
+#   tls:
+#     enabled: false
+#     authentication:
+#       type: ""
+#     fullchain: |-
+#     privkey: |-
+#     cacerts: |-
+#   loadBalancer:
+#     enabled: false
+#     domain: ""
+#   dependencies:
+#     kafka:
+#       ## brokerCount: 3
+#       bootstrapEndpoint: pkc-abcde.eastus.azure.confluent.cloud:9092
+#       brokerEndpoints: b0-pkc-abcde.eastus.azure.confluent.cloud:9092,b1-pkc-abcde.eastus.azure.confluent.cloud:9092,b2-pkc-abcde.eastus.azure.confluent.cloud:9092
+#       brokerCount: 3
+#       username: <API_KEY>
+#       password: <API_SECRET>
+#       tls:
+#         enabled: true
+#         internal: true
+#         authentication:
+#           type: "plain"
+#     schemaRegistry:
+#       enabled: false
+#       tls:
+#         enabled: false
+#         authentication:
+#           type: ""
+#       url: http://schemaregistry:8081
+#   image:
+#     tag: 5.5.0.0-ubi8
+
+## Control Center (C3) Resource configuration
+##
+##EDIT the PSC in confluent-operator/charts/controlcenter/templates/controlcenter-psc.yml
+## confluent.metrics.topic.max.message.bytes=8388608
+controlcenter:
+  name: controlcenter
+  license: ""
+  ##
+  ## C3 dependencies
+  ##
+  dependencies:
+    c3KafkaCluster:
+      brokerCount: 3
+      bootstrapEndpoint: pkc-abcde.eastus.azure.confluent.cloud:9092
+      zookeeper:
+        endpoint: zookeeper:2181
+      tls:
+        enabled: true
+        internal: true
+        authentication:
+          type: "plain"
+    connectCluster:
+      enabled: true
+      url: http://connectors:8083
+    ksql:
+      enabled: false
+      url: http://ksql:9088
+    schemaRegistry:
+      enabled: false
+      url: http://schemaregistry:8081
+  ##
+  ## C3 External Access
+  ##
+  loadBalancer:
+    enabled: false
+    domain: ""
+  ##
+  ## TLS configuration
+  ##
+  tls:
+    enabled: false
+    internal: false
+    authentication:
+      type: "plain"
+    fullchain: |-
+    privkey: |-
+    cacerts: |-
+  ##
+  ## C3 authentication
+  ##
+  auth:
+    basic:
+      enabled: true
+      ##
+      ## map with key as user and value as password and role
+      property:
+        admin: Developer1,Administrators
+        disallowed: no_access
+  jvmConfig:
+    heapSize: 2048M
+  resources:
+    requests:
+      cpu: 200m
+      memory: 2048Mi
+  image:
+    tag: 5.5.0.0-ubi8
+  disableHostPort: true
