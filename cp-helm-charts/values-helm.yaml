@@ -34,24 +34,24 @@ configurationOverrides:
   "retry.backoff.ms": "500"
   # connect worker
   "security.protocol": "SASL_SSL"
-  "sasl.jaas.config": "org.apache.kafka.common.security.plain.PlainLoginModule required username='HFAYOJRRZXQIOOHH' password='TLRe5tioYiychyyED0S25kk/WwQNOgl6hqUii6rr7naQ3vS8AmOeKP84HrVPY1c3';"
+  "sasl.jaas.config": "org.apache.kafka.common.security.plain.PlainLoginModule required username='<API_KEY>' password='<API_SECRET>';"
   "sasl.mechanism": "PLAIN"
   "ssl.endpoint.identification.algorithm": "HTTPS"
   # connect producer
   "producer.security.protocol": SASL_SSL
-  "producer.sasl.jaas.config": "org.apache.kafka.common.security.plain.PlainLoginModule required username='HFAYOJRRZXQIOOHH' password='TLRe5tioYiychyyED0S25kk/WwQNOgl6hqUii6rr7naQ3vS8AmOeKP84HrVPY1c3';"
+  "producer.sasl.jaas.config": "org.apache.kafka.common.security.plain.PlainLoginModule required username='<API_KEY>' password='<API_SECRET>';"
   "producer.sasl.mechanism": PLAIN
   "producer.interceptor.classes": "io.confluent.monitoring.clients.interceptor.MonitoringProducerInterceptor"
   "producer.confluent.monitoring.interceptor.security.protocol": SASL_SSL
-  "producer.confluent.monitoring.interceptor.sasl.jaas.config": "org.apache.kafka.common.security.plain.PlainLoginModule required username='HFAYOJRRZXQIOOHH' password='TLRe5tioYiychyyED0S25kk/WwQNOgl6hqUii6rr7naQ3vS8AmOeKP84HrVPY1c3';"
+  "producer.confluent.monitoring.interceptor.sasl.jaas.config": "org.apache.kafka.common.security.plain.PlainLoginModule required username='<API_KEY>' password='<API_SECRET>';"
   "producer.confluent.monitoring.interceptor.sasl.mechanism": PLAIN
   # connect consumer
   "consumer.security.protocol": SASL_SSL
-  "consumer.sasl.jaas.config": "org.apache.kafka.common.security.plain.PlainLoginModule required username='HFAYOJRRZXQIOOHH' password='TLRe5tioYiychyyED0S25kk/WwQNOgl6hqUii6rr7naQ3vS8AmOeKP84HrVPY1c3';"
+  "consumer.sasl.jaas.config": "org.apache.kafka.common.security.plain.PlainLoginModule required username='<API_KEY>' password='<API_SECRET>';"
   "consumer.sasl.mechanism": PLAIN
   "consumer.interceptor.classes": "io.confluent.monitoring.clients.interceptor.MonitoringConsumerInterceptor"
   "consumer.confluent.monitoring.interceptor.security.protocol": SASL_SSL
-  "consumer.confluent.monitoring.interceptor.sasl.jaas.config": "org.apache.kafka.common.security.plain.PlainLoginModule required username='HFAYOJRRZXQIOOHH' password='TLRe5tioYiychyyED0S25kk/WwQNOgl6hqUii6rr7naQ3vS8AmOeKP84HrVPY1c3';"
+  "consumer.confluent.monitoring.interceptor.sasl.jaas.config": "org.apache.kafka.common.security.plain.PlainLoginModule required username='<API_KEY>' password='<API_SECRET>';"
   "consumer.confluent.monitoring.interceptor.sasl.mechanism": PLAIN
 
 heapOptions: "-Xms512M -Xmx512M"
@@ -61,7 +61,7 @@ heapOptions: "-Xms512M -Xmx512M"
 customEnv:
   # CUSTOM_SCRIPT_PATH: /etc/scripts/create-connectors.sh
   "CONNECT_SECURITY_PROTOCOL": "SASL_SSL"
-  "CONNECT_SASL_JAAS_CONFIG": "org.apache.kafka.common.security.plain.PlainLoginModule required username='HFAYOJRRZXQIOOHH' password='TLRe5tioYiychyyED0S25kk/WwQNOgl6hqUii6rr7naQ3vS8AmOeKP84HrVPY1c3';"
+  "CONNECT_SASL_JAAS_CONFIG": "org.apache.kafka.common.security.plain.PlainLoginModule required username='<API_KEY>' password='<API_SECRET>';"
   "CONNECT_SASL_MECHANISM": "PLAIN"
   "CONNECT_SSL_ENDPOINT_IDENTIFICATION_ALGORITHM": "HTTPS"
 

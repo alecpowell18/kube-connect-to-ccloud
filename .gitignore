@@ -1,3 +1,4 @@
 *.orig
+confluent-operator/docker-image/confluentinc-kafka-connect-datagen/
 ./confluent-operator/docker-image/confluentinc-kafka-connect-datagen/
 ./confluent-operator/docker-image/confluentinc-kafka-connect-datagen/*
