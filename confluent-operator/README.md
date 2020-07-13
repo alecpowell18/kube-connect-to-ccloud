@@ -1,16 +1,16 @@
 # Connect to CCloud
-Using cp-helm charts to deploy a Kafka Connect cluster linked to a Confluent Cloud cluster.
+Using Confluent Operator to deploy a self-managed Kafka Connect cluster linked to Confluent Cloud.
 
 Last updated: 07-13-20.
 
-Tested on: Minikube, AKS.
+Tested on: Minikube, Azure Kubernetes (AKS).
 
 k8s version: 1.16.10
 
 Contact: apowell@confluent.io
 
 ## STEPS:
-## Build Docker image for Kafka Connect source/sink connectors. See CONNECT_IMAGE.md for full steps.
+## Build Docker image for Kafka Connect source/sink connectors. See [these instructions](./docker-image/CONNECT_IMAGE.md) for full steps.
 ### *(You may skip this step if you are able to use one of the connectors packaged inside cp-server-connect-operator)*
 
 ```
