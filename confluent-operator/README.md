@@ -1,9 +1,9 @@
 # Connect to CCloud
 Using Confluent Operator to deploy a self-managed Kafka Connect cluster linked to Confluent Cloud.
 
-Last updated: 07-13-20.
+Last updated: 08-07-20.
 
-Tested on: Minikube, Azure Kubernetes (AKS).
+Tested on: Minikube, Azure Kubernetes (AKS), Google Kubernetes Engine (GKE)
 
 k8s version: 1.16.10
 
@@ -28,8 +28,8 @@ Publish to a place / repo where your k8s cluster will be able to pull it.
 
 Download Operator
 ```
-wget https://platform-ops-bin.s3-us-west-1.amazonaws.com/operator/confluent-operator-5.5.0.tar.gz
-tar -xvf confluent-operator-5.5.0.tar.gz
+wget https://platform-ops-bin.s3-us-west-1.amazonaws.com/operator/confluent-operator-5.5.1.tar.gz
+tar -xvf confluent-operator-5.5.1.tar.gz
 cd confluent-operator/
 ```
 
