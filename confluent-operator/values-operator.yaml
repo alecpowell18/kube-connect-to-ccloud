@@ -39,7 +39,7 @@ global:
       publicKey: ""
   initContainer:
     image:
-      tag: 5.5.0.0-ubi8
+      tag: 5.5.1.0-ubi8
 ##Operator
 operator:
   image:
@@ -56,7 +56,7 @@ operator:
 #   jvmConfig:
 #     heapSize: 512M
 #   image:
-#     tag: 5.5.0.0-ubi8
+#     tag: 5.5.1.0-ubi8
 #   disableHostPort: true
 
 # ## Kafka Cluster
@@ -81,7 +81,7 @@ operator:
 #   jvmConfig:
 #     heapSize: 512M
 #   image:
-#     tag: 5.5.0.0-ubi8
+#     tag: 5.5.1.0-ubi8
 #   disableHostPort: true
 
 ## Connect Cluster
@@ -91,7 +91,7 @@ connect:
   replicas: 2
   image: 
     repository: alecpowell18/connect-custom
-    tag: 0.1
+    tag: 0.2
   dependencies:
     kafka:
       bootstrapEndpoint: pkc-abcde.eastus.azure.confluent.cloud:9092
@@ -146,7 +146,7 @@ connect:
 #       brokerCount: 3
 #       bootstrapEndpoint: kafka:9071
 #   image:
-#     tag: 5.5.0.0-ubi8 
+#     tag: 5.5.1.0-ubi8 
 ##
 ## Schema Registry
 ##
@@ -174,7 +174,7 @@ connect:
 #       brokerCount: 3
 #       bootstrapEndpoint: kafka:9071
 #   image:
-#     tag: 5.5.0.0-ubi8
+#     tag: 5.5.1.0-ubi8
 ##
 ## KSQL
 ## EDIT the PSC in confluent-operator/charts/ksql/templates/ksql-psc.yml
@@ -221,7 +221,7 @@ connect:
 #           type: ""
 #       url: http://schemaregistry:8081
 #   image:
-#     tag: 5.5.0.0-ubi8
+#     tag: 5.5.1.0-ubi8
 
 ## Control Center (C3) Resource configuration
 ##
@@ -288,5 +288,5 @@ controlcenter:
       cpu: 200m
       memory: 2048Mi
   image:
-    tag: 5.5.0.0-ubi8
+    tag: 5.5.1.0-ubi8
   disableHostPort: true
