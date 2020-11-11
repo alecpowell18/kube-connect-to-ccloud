@@ -1,3 +1,4 @@
+alec*
 *.orig
 confluent-operator/docker-image/confluentinc-kafka-connect-*/
 ./confluent-operator/docker-image/confluentinc-kafka-connect-*/

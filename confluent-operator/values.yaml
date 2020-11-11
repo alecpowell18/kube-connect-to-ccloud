@@ -39,59 +39,21 @@ global:
       publicKey: ""
   initContainer:
     image:
-      tag: 5.5.1.0-ubi8
+      tag: 6.0.0.0
 ##Operator
-operator:
-  image:
-    tag: 0.364.0-ubi8
-## Zookeeper cluster
-##
-# zookeeper:
-#   name: zookeeper
-#   replicas: 3
-#   resources:
-#     requests:
-#       cpu: 200m
-#       memory: 512Mi
-#   jvmConfig:
-#     heapSize: 512M
+# operator:
 #   image:
-#     tag: 5.5.1.0-ubi8
-#   disableHostPort: true
-
-# ## Kafka Cluster
-# ##
-# kafka:
-#   name: kafka
-#   replicas: 3
-#   resources:
-#     requests:
-#       cpu: 200m
-#       memory: 512Mi
-#   loadBalancer:
-#     enabled: true
-#     domain: "cp.55.demo"
-#   tls:
-#     enabled: false
-#     fullchain: |-
-#     privkey: |-
-#     cacerts: |-
-#   metricReporter:
-#     enabled: false
-#   jvmConfig:
-#     heapSize: 512M
-#   image:
-#     tag: 5.5.1.0-ubi8
-#   disableHostPort: true
-
+#     tag: 0.419.0
 ## Connect Cluster
 ##
 connect:
+  imagePullPolicy: IfNotPresent
   name: connectors
   replicas: 2
-  image: 
+## Currently this image refers to my public Connect image - extending the default image with Azure Blob Storage Sink, Debezium SQL Server Source, & Snowflake Sink
+  image:
     repository: alecpowell18/connect-custom
-    tag: 0.2
+    tag: 0.5
   dependencies:
     kafka:
       bootstrapEndpoint: pkc-abcde.eastus.azure.confluent.cloud:9092
@@ -127,10 +89,18 @@ connect:
     enabled: false
     domain: ""
 ## Replicator Connect Cluster
+## EDIT the PSC in confluent-operator/charts/connect/templates/connect-psc.yaml
+## connector.client.config.override.policy=All
 ##
 # replicator:
 #   name: replicator
 #   replicas: 2
+#   resources:
+#     requests:
+#       cpu: 200m
+#       memory: 512Mi
+#   jvmConfig:
+#     heapSize: 512M
 #   tls:
 #     enabled: false
 #     authentication:
@@ -143,10 +113,17 @@ connect:
 #     domain: ""
 #   dependencies:
 #     kafka:
-#       brokerCount: 3
-#       bootstrapEndpoint: kafka:9071
+#     bootstrapEndpoint: pkc-abcde.eastus.azure.confluent.cloud:9092
+#     brokerCount: 3
+#     username: <API_KEY>
+#     password: <API_SECRET>
+#     tls:
+#       enabled: true
+#       internal: true
+#       authentication:
+#         type: "plain"
 #   image:
-#     tag: 5.5.1.0-ubi8 
+#     tag: 6.0.0.0 
 ##
 ## Schema Registry
 ##
@@ -174,10 +151,10 @@ connect:
 #       brokerCount: 3
 #       bootstrapEndpoint: kafka:9071
 #   image:
-#     tag: 5.5.1.0-ubi8
+#     tag: 6.0.0.0
 ##
 ## KSQL
-## EDIT the PSC in confluent-operator/charts/ksql/templates/ksql-psc.yml
+## EDIT the PSC in confluent-operator/charts/ksql/templates/ksql-psc.yaml
 ## ksql.internal.topic.replicas=3, ksql.streams.replication.factor=3, ksql.logging.processing.topic.replication.factor=3
 ## NOTE: does not support connecting to Cloud managed SR with basic auth.
 ##
@@ -221,7 +198,7 @@ connect:
 #           type: ""
 #       url: http://schemaregistry:8081
 #   image:
-#     tag: 5.5.1.0-ubi8
+#     tag: 6.0.0.0
 
 ## Control Center (C3) Resource configuration
 ##
@@ -288,5 +265,5 @@ controlcenter:
       cpu: 200m
       memory: 2048Mi
   image:
-    tag: 5.5.1.0-ubi8
+    tag: 6.0.0.0
   disableHostPort: true

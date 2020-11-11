@@ -1,48 +1,48 @@
 # Connect to CCloud
 Using Confluent Operator to deploy a self-managed Kafka Connect cluster linked to Confluent Cloud.
 
-Last updated: 08-07-20.
+Last updated: 11-10-20.
 
-Tested on: Minikube, Azure Kubernetes (AKS), Google Kubernetes Engine (GKE)
+Tested on: Minikube, Azure Kubernetes Service (AKS), Google Kubernetes Engine (GKE), Elastic Kubernetes Service (EKS)
 
-k8s version: 1.16.10
+k8s versions used: 1.16, 1.18
 
 Contact: apowell@confluent.io
 
 ## STEPS:
-## Build Docker image for Kafka Connect source/sink connectors. See [these instructions](./docker-image/CONNECT_IMAGE.md) for full steps.
+## 1) Build Docker image for Kafka Connect source/sink connectors. See [these instructions](./docker-image/CONNECT_IMAGE.md) for full steps.
 ### *(You may skip this step if you are able to use one of the connectors packaged inside cp-server-connect-operator)*
 
 ```
-#Check/change contents of docker-image/Dockerfile for connectors you wish to add
-#Build the image:
+# Check/change contents of docker-image/Dockerfile for connectors you wish to add
+# Build your image:
 docker build -t alecpowell18/connect-custom:0.1 .
 docker push alecpowell18/connect-custom:0.1
 ```
-Publish to a place / repo where your k8s cluster will be able to pull it.
+Publish the image to a place / repo where your k8s cluster will be able to pull it.
 
 
-## Deploy Operator Helm Chart
+## 2) Deploy Operator
 
 *(Pre-req: spin up a k8s cluster)*
 
-Download Operator
+Download Confluent Operator:
 ```
-wget https://platform-ops-bin.s3-us-west-1.amazonaws.com/operator/confluent-operator-5.5.1.tar.gz
-tar -xvf confluent-operator-5.5.1.tar.gz
+wget https://platform-ops-bin.s3-us-west-1.amazonaws.com/operator/confluent-operator-1.6.0-for-confluent-platform-6.0.0.tar.gz
+tar -xvf confluent-operator-1.6.0-for-confluent-platform-6.0.0.tar.gz
 cd confluent-operator/
 ```
 
-Create new values.yaml file for your deployment
+Create a new values.yaml file for your deployment
 ```
-cp helm/providers/azure.yaml values-operator.yaml
-vim values-operator.yaml  # update license key, region and zones, enable&configure LB for external access (if desired)
+cp helm/providers/azure.yaml values.yaml
+vim values.yaml  # update license key, region and zones, enable & configure LB for external access (if desired)
 ```
 
-Change # replicas, docker image name (to refer to image you just built), for the Connect cluster in values-operator.yaml
-Also, make sure to add API Key and API Secret for access to Confluent Cloud inside global.sasl.username / password.
+Change # replicas, docker image name (to refer to the image you just built), for the Connect cluster in values.yaml
+Also, make sure to add your API Key and API Secret for access to Confluent Cloud inside global.sasl.username / password.
 ```
-vim values-operator.yaml
+vim values.yaml
 ```
 
 Create a namespace for Confluent platform inside your k8s cluster.
@@ -53,14 +53,14 @@ kubectl config set-context --current --namespace confluent
 
 Deploy Operator, using path to confluent-operator directory inside /helm/ directory to pick up the Helm charts.
 ```
-helm install operator ./helm/confluent-operator --namespace confluent --values values-operator.yaml --set operator.enabled=true
+helm install operator ./helm/confluent-operator --namespace confluent --values values.yaml --set operator.enabled=true
 ```
 
-## Deploy the Connect cluster
+## 3) Deploy the Connect cluster
 
-Step 1: Create your API Keys and Service Account inside Confluent Cloud: https://docs.confluent.io/current/cloud/access-management/service-account.html
+First: Make sure to create your API Keys and/or Service Account inside Confluent Cloud: https://docs.confluent.io/current/cloud/access-management/service-account.html
 
-Step 2: Make sure that dependency for Kafka cluster is correctly linked to your Confluent Cloud cluster and API key inside values.yaml in `connect` section:
+Next: Make sure that the Kafka cluster dependency is correctly linked to your Confluent Cloud cluster and API key inside values.yaml in `connect` section:
 ```
 dependencies:
   kafka:
@@ -77,18 +77,25 @@ dependencies:
     enabled: false
     url: ""
 ```
-Step 3: Deploy the Helm chart.
+
+*Note*: Check `resources` against your k8s limits, and make sure the pod size aligns with your expectations (in prod, you might want >1 GB for heap space). See "Additional Note" section for more details & recommendations.
 ```
-helm install connect ./helm/confluent-operator --namespace confluent --values values-operator.yaml --set connect.enabled=true
+resources:
+  requests:
+    cpu: 200m
+    memory: 256Mi
+jvmConfig:
+  heapSize: 256M
 ```
 
-## Deploy Confluent Control Center
-Note: Per Confluent Cloud requirements, one configuration inside the C3 Helm chart must be updated.
+Finally, deploy the Helm chart for Connect.
+```
+helm install connect ./helm/confluent-operator --namespace confluent --values values.yaml --set connect.enabled=true
+```
 
-Edit the PSC in confluent-operator/charts/controlcenter/templates/controlcenter-psc.yml to include the config:
-> confluent.metrics.topic.max.message.bytes=8388608
+## 4) Deploy Confluent Control Center
 
-Then, inside values-operator.yaml, make sure that the dependency for Kafka cluster is correctly linked to your Confluent Cloud cluster and API key in `controlcenter` section:
+Then, inside values.yaml, make sure that the dependency for Kafka cluster is correctly linked to your Confluent Cloud cluster and API key in `controlcenter` section:
 ```
 dependencies:
   c3KafkaCluster:
@@ -104,7 +111,7 @@ dependencies:
   connectCluster:
     enabled: true
     url: http://connectors:8083
-  # if self-managing ksqlDB, you may set to true
+  ## if deploying ksqlDB as well, set to true
   ksql:
     enabled: false
     url: http://ksql:9088
@@ -113,31 +120,31 @@ dependencies:
     url: http://schemaregistry:8081
 ```
 
-Then deploy the Helm chart.
+Now, deploy the Helm chart for Control Center.
 ```
-helm install controlcenter ./helm/confluent-operator --namespace confluent --values values-operator.yaml --set controlcenter.enabled=true
+helm install controlcenter ./helm/confluent-operator --namespace confluent --values values.yaml --set controlcenter.enabled=true
 ```
 
-## Confirm the k8s pods are spun up and ready.
+## 5) Confirm the k8s pods are spun up and ready.
 ```
 kubectl get pods -n confluent
 kubectl get services -n confluent
 ```
 
-## Start your connector(s)
+## 6) Start your connector(s)
 
-You can either deploy through GUI at Confluent Control Center (C3), or by exposing the REST API for Connect locally.
+You can either deploy through GUI at Confluent Control Center, or by exposing the REST API for Connect locally.
 
-#### A) Deploy through C3
+#### A) Deploy through Control Center
 
-Port forward the Control Center to your localhost (in this case, forwards all traffic to localhost:12345):
+Port forward the Control Center pod's traffic locally (in this case, forwards all traffic to localhost:9021):
 ```
-kubectl -n confluent port-forward controlcenter-0 12345:9021
+kubectl -n confluent port-forward controlcenter-0 9021:9021
 ```
 
-Deploy connectors through the attached Connect cluster in GUI, by navigating your browser to port 12345.
+Deploy connectors through the Connect workflow in the UI, by navigating your browser to port 9021.
 ```
-open http://localhost:12345  # username / pw = admin / Developer1
+open http://localhost:9021  # username / pw = admin / Developer1
 ```
 
 #### B) Deploy through Kafka Connect's REST API
@@ -174,18 +181,34 @@ After few mins, delete the connector to stop producing.
 curl -X DELETE http://localhost:8083/connectors/datagen-users
 ```
 
-## Cleanup
+## 7) Cleanup
 ```
-helm del controlcenter
-helm del connect
-helm del operator
+helm delete controlcenter
+helm delete connect
+helm delete operator
 ```
 
-### Additional notes:
 
-This model can be extended to ksqlDB using the `ksql` configuration inside `values.yaml`. However, note the following configs which must be overwritten in the PSC in confluent-operator/charts/ksql/templates/ksql-psc.yml:
+## Additional notes:
+
+
+### Overrides required to run ksqlDB:
+This model can be extended to ksqlDB using the `ksql` configuration inside `values.yaml`. However, note the following configs which must be overwritten in the PSC in confluent-operator/charts/ksql/templates/ksql-psc.yaml:
 ```
 ksql.internal.topic.replicas=3
 ksql.streams.replication.factor=3
 ksql.logging.processing.topic.replication.factor=3
 ```
+
+
+### Overrides required to run Replicator:
+Update the PSC in confluent-operator/charts/connect/templates/connect-psc.yaml
+```
+connector.client.config.override.policy=All
+```
+Additionally, if deploying a connector which requires a Confluent license, add the extra configuration detailed in the "Connecting to Confluent Cloud" section of this KnowledgeBase doc: https://support.confluent.io/hc/en-us/articles/360040692592-How-to-include-Security-Configuration-for-License-access-into-a-Connector
+
+
+
+### PRODUCTION deployment pod resources & JVM heap size:
+Note that the default settings in this repo will spin up Connect worker pods of only 0.2CPU and 256MB RAM. For a production deployment, you will want to increase the cpu > 1000m and memory >= 1G with jvmHeap >= 1G as well.
