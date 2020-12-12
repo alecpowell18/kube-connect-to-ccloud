@@ -1,7 +1,7 @@
 # Connect to CCloud
 Using Confluent Operator to deploy a self-managed Kafka Connect cluster linked to Confluent Cloud.
 
-Last updated: 11-10-20.
+Last updated: 12-11-20.
 
 Tested on: Minikube, Azure Kubernetes Service (AKS), Google Kubernetes Engine (GKE), Elastic Kubernetes Service (EKS)
 
@@ -23,7 +23,6 @@ Publish the image to a place / repo where your k8s cluster will be able to pull 
 
 
 ## 2) Deploy Operator
-
 *(Pre-req: spin up a k8s cluster)*
 
 Download Confluent Operator:
@@ -57,7 +56,6 @@ helm install operator ./helm/confluent-operator --namespace confluent --values v
 ```
 
 ## 3) Deploy the Connect cluster
-
 First: Make sure to create your API Keys and/or Service Account inside Confluent Cloud: https://docs.confluent.io/current/cloud/access-management/service-account.html
 
 Next: Make sure that the Kafka cluster dependency is correctly linked to your Confluent Cloud cluster and API key inside values.yaml in `connect` section:
@@ -94,7 +92,6 @@ helm install connect ./helm/confluent-operator --namespace confluent --values va
 ```
 
 ## 4) Deploy Confluent Control Center
-
 Then, inside values.yaml, make sure that the dependency for Kafka cluster is correctly linked to your Confluent Cloud cluster and API key in `controlcenter` section:
 ```
 dependencies:
@@ -161,14 +158,14 @@ Get the running connectors
 ```
 curl localhost:8083/connectors/ | jq
 ```
-*Per datagen-users.config, CREATE the Kafka topic first in the CCloud GUI.
+*Per datagen-users-config.json, CREATE the Kafka topic first in the CCloud GUI.
 Or , from the CCloud CLI:*
 ```
 ccloud kafka topic create users
 ```
 Start the datagen connector
 ```
-curl -H "Content-Type: application/json" --data @connectors-config/datagen-users.config localhost:8083/connectors
+curl -H "Content-Type: application/json" --data @connectors-config/datagen-users-config.json localhost:8083/connectors
 ```
 Check for "RUNNING" status
 ```
@@ -187,13 +184,45 @@ helm delete controlcenter
 helm delete connect
 helm delete operator
 ```
+## 8*) Running in Production
+Note that the default settings in this repo will spin up Connect worker pods of only 0.2CPU and 256MB RAM. For a production deployment, you will likely want to increase the cpu > 1000m and memory >= 1G with jvmHeap >= 1G as well.
 
 
 ## Additional notes:
 
+### Confluent Cloud Schema Registry
+If you are using the Confluent Cloud Schema Registry with any connectors (not the local standalone SR which can be deployed using the Operator), add the following configs to the PSC file in `confluent-operator/charts/connect/templates/connect-psc.yaml`, in the "connect.properties" section. Have your SR API key & secret ready:
+```
+basic.auth.credentials.source=USER_INFO
+basic.auth.user.info=$SCHEMA_REGISTRY_API_KEY:$SCHEMA_REGISTRY_API_SECRET
+key.converter.basic.auth.credentials.source=USER_INFO
+key.converter.schema.registry.basic.auth.user.info=$SCHEMA_REGISTRY_API_KEY:$SCHEMA_REGISTRY_API_SECRET
+value.converter.basic.auth.credentials.source=USER_INFO
+value.converter.schema.registry.basic.auth.user.info=$SCHEMA_REGISTRY_API_KEY:$SCHEMA_REGISTRY_API_SECRET
+```
+Don't forget to reference the SR URL in the `connect` section of `values.yaml` like so:
+```
+    schemaRegistry:
+      enabled: true
+      url: "https://psrc-abcde.us-east-2.aws.confluent.cloud"
+```
 
-### Overrides required to run ksqlDB:
-This model can be extended to ksqlDB using the `ksql` configuration inside `values.yaml`. However, note the following configs which must be overwritten in the PSC in confluent-operator/charts/ksql/templates/ksql-psc.yaml:
+
+### Running Enterprise-licensed connectors
+Additionally, if deploying a connector which requires a Confluent license, add the extra configuration detailed in the "Connecting to Confluent Cloud" section of this KnowledgeBase doc: https://support.confluent.io/hc/en-us/articles/360040692592-How-to-include-Security-Configuration-for-License-access-into-a-Connector
+
+
+### Overrides for Confluent metrics reporter
+If running the Confluent metrics reporter, the Control Center pod may fail to start up. Per Confluent Cloud requirements, one configuration inside the C3 Helm chart must be updated.
+
+Edit the PSC file in `confluent-operator/charts/controlcenter/templates/controlcenter-psc.yaml` to include the config:
+```
+confluent.metrics.topic.max.message.bytes=8388608
+```
+
+
+### Overrides required to run ksqlDB
+This model can be extended to ksqlDB using the `ksql` configuration inside `values.yaml`. However, note the following configs which must be overwritten in the PSC in `confluent-operator/charts/ksql/templates/ksql-psc.yaml`:
 ```
 ksql.internal.topic.replicas=3
 ksql.streams.replication.factor=3
@@ -201,14 +230,8 @@ ksql.logging.processing.topic.replication.factor=3
 ```
 
 
-### Overrides required to run Replicator:
-Update the PSC in confluent-operator/charts/connect/templates/connect-psc.yaml
+### Overrides required to run Replicator
+Update the PSC in `confluent-operator/charts/connect/templates/connect-psc.yaml`:
 ```
 connector.client.config.override.policy=All
 ```
-Additionally, if deploying a connector which requires a Confluent license, add the extra configuration detailed in the "Connecting to Confluent Cloud" section of this KnowledgeBase doc: https://support.confluent.io/hc/en-us/articles/360040692592-How-to-include-Security-Configuration-for-License-access-into-a-Connector
-
-
-
-### PRODUCTION deployment pod resources & JVM heap size:
-Note that the default settings in this repo will spin up Connect worker pods of only 0.2CPU and 256MB RAM. For a production deployment, you will want to increase the cpu > 1000m and memory >= 1G with jvmHeap >= 1G as well.

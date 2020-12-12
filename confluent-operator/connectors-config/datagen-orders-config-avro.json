@@ -1,0 +1,15 @@
+{
+  "name": "datagen-orders-avro",
+  "config": {
+    "connector.class": "io.confluent.kafka.connect.datagen.DatagenConnector",
+    "kafka.topic": "orders-avro",
+    "quickstart": "orders",
+    "key.converter": "org.apache.kafka.connect.storage.StringConverter",
+    "value.converter": "io.confluent.connect.avro.AvroConverter",
+    "value.converter.basic.auth.credentials.source": "USER_INFO",
+    "value.converter.schema.registry.basic.auth.user.info": "<SR_API_KEY>:<SR_API_SECRET>",
+    "value.converter.schema.registry.url": "<SR_URL>",
+    "max.interval": 100,
+    "tasks.max": "1"
+  }
+}
