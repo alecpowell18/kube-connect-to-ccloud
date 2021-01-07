@@ -1,6 +1,6 @@
 # Creating custom Docker image to include additional connectors
 
-How to create a docker image for custom connectors?
+How to create a Docker image for custom connectors?
 
 This guide describes how to add custom connectors into a Kubernetes Confluent Operator deployment. Confluent Operator automatically packages and deploys the following connectors when it deploys Confluent Connect and Connect workers:
 
@@ -12,33 +12,25 @@ This guide describes how to add custom connectors into a Kubernetes Confluent Op
 6. kafka-connect-jms
 7. kafka-connect-s3
 
-The above can be used out of the box in a Confluent Operator deployment in Kubernetes. However if you’d like to use the vast array of connectors in Confluent’s Connector Hub or an Open Source Connector, a custom layered container needs to be built from Confluent Operator’s Connect Docker image. The private docker registry is required to work as the custom docker image need to be pushed to private docker registry.
+The above can be used out of the box in a Confluent Operator deployment in Kubernetes. However, if you’d like to use the vast array of connectors in Confluent’s Connector Hub or an Open Source Connector, a custom layered container needs to be built from Confluent Operator’s Connect Docker image. The private docker registry is required to work as the custom docker image need to be pushed to private docker registry.
 
 ## Step by Step Guide
 
-#### Download the connector that needs to be deployed into a Confluent Operator Kubernetes cluster
+#### Find your connector that needs to be deployed into a Confluent Operator Kubernetes cluster
 
-(Make sure to download connector through `confluent-hub` command)
-
-Move the connector's folder into your Dockerfile build context directory, ie:
-```
-drwxr-xr-x  4 apowell  staff  128 Jul  9 15:36 ./
-drwxr-xr-x  5 apowell  staff  160 Jul  9 15:30 ../
--rw-r--r--  1 apowell  staff  151 Jul  9 15:36 Dockerfile
-drwxr-xr-x  7 apowell  staff  224 Jul  9 15:32 confluentinc-kafka-connect-datagen/
-```
+[Confluent Hub](https://www.confluent.io/hub)
+(You will be downloading connectors using the `confluent-hub` command)
 
 #### Create a Dockerfile. 
 
 The docker file should use the Confluent Operator connect image as the base image.
 
-Copy the connector into the “/usr/share/java” directory in the Confluent Operator connect image.
-
 Create Dockerfile with the following information for connector confluentinc-kafka-connect-datagen:
 
 ```
-FROM confluentinc/cp-server-connect-operator:5.5.0.0
-ADD​ ./confluentinc-kafka-connect-datagen /usr/share/java/confluentinc-kafka-connect-datagen
+FROM confluentinc/cp-server-connect-operator:6.0.0.0
+USER root
+RUN confluent-hub install confluentinc/kafka-connect-datagen:0.4.0 --no-prompt
 ```
 
 #### Build Docker image
