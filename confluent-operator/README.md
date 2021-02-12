@@ -1,1 +1,1 @@
-[Go up one directory\(../README.md)
+[Go up one directory](../README.md)
