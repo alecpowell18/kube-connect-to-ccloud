@@ -3,7 +3,7 @@ This repo demonstrates how to use Confluent Operator to deploy a self-managed Ka
 
 Last updated: 02-11-21.
 
-Tested on: Minikube, Azure Kubernetes Service (AKS), Google Kubernetes Engine (GKE), Amazon Elastic Kubernetes Service (EKS)
+Tested on: [Minikube](https://minikube.sigs.k8s.io/docs/), Azure Kubernetes Service (AKS), Google Kubernetes Engine (GKE), Amazon Elastic Kubernetes Service (EKS)
 
 k8s versions used: 1.16, 1.18
 
